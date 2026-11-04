@@ -307,7 +307,7 @@ def fetch_image(prompt, seed, path, tries=4):
     if path.exists() and path.stat().st_size > 10000:
         return path
     url = ("https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt + STYLE)
-           + f"?width=1080&height=1920&nologo=true&seed={seed}&model=flux")
+           + f"?width=1080&height=1920&nologo=true&private=true&seed={seed}&model=flux")
     for k in range(tries):
         r = subprocess.run(["curl", "-sS", "-m", "180", "-o", str(path), "-w", "%{http_code}", url],
                            capture_output=True, text=True)
