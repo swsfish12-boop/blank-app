@@ -11,7 +11,9 @@
       "scene": "envelope",
       "hl": [
         "사과 편지"
-      ]
+      ],
+      "img": "a pile of old handwritten letter envelopes addressed to Robert on a dark wooden table, wax seals, a single candle, dust",
+      "seed": 11
     },
     {
       "text": "미국 플로리다, 키웨스트.",
@@ -22,7 +24,9 @@
       },
       "hl": [
         "키웨스트"
-      ]
+      ],
+      "img": "an old white Victorian wooden mansion in Key West Florida at night, palm trees, fog, pale moonlight, one lit upstairs window",
+      "seed": 12
     },
     {
       "text": "1900년대 초, 한 소년이 선물받은 인형. 이름은 로버트.",
@@ -32,21 +36,27 @@
       },
       "hl": [
         "로버트"
-      ]
+      ],
+      "img": "a 1900s sepia antique photograph of a little boy in a sailor suit holding a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, on the porch of a Victorian house, faded and scratched",
+      "seed": 13
     },
     {
       "text": "가족들은 빈 방에서, 둘이 대화하는 소리를 들었다고 합니다.",
       "scene": "doll",
       "hl": [
         "대화하는 소리"
-      ]
+      ],
+      "img": "a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, sitting alone on a small wooden chair in a dim Victorian child's bedroom, staring at camera",
+      "seed": 14
     },
     {
       "text": "물건이 깨지면 소년은 늘 말했죠. 로버트가 그랬어.",
       "scene": "doll_dark",
       "hl": [
         "로버트가 그랬어"
-      ]
+      ],
+      "img": "a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, in a pitch dark bedroom at night, long shadow on the wall, a broken porcelain vase on the floor, moonlight through window",
+      "seed": 15
     },
     {
       "text": "1974년 주인이 죽은 뒤, 새 집주인은 인형이 자신을 방에 가뒀다고 주장했습니다.",
@@ -56,7 +66,9 @@
       },
       "hl": [
         "방에 가뒀다고"
-      ]
+      ],
+      "img": "a closed wooden attic door in an old Victorian house at night, faint warm light leaking under the door, dust, ominous, small doll silhouette sitting in front of it",
+      "seed": 16
     },
     {
       "text": "1994년부터 로버트는, 박물관 유리관 안에 앉아 있습니다.",
@@ -66,21 +78,27 @@
       },
       "hl": [
         "유리관"
-      ]
+      ],
+      "img": "a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, displayed inside a glass case in a small dim museum inside an old brick fort, spotlight from above",
+      "seed": 17
     },
     {
       "text": "규칙은 하나. 사진을 찍기 전에, 허락을 구할 것.",
       "scene": "camera",
       "hl": [
         "허락"
-      ]
+      ],
+      "img": "a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, inside a glass museum display case, seen from the front, reflections on the glass",
+      "seed": 18
     },
     {
       "text": "무시한 사람들은, 불운이 따랐다며 사과 편지를 보냅니다.",
       "scene": "glitch",
       "hl": [
         "불운"
-      ]
+      ],
+      "img": "a broken vintage camera lying on a museum floor in front of a glass display case containing a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, dim red light",
+      "seed": 19
     },
     {
       "text": "로버트, 미안해. 제발 용서해 줘.",
@@ -94,14 +112,18 @@
       "scene": "wall",
       "hl": [
         "벽"
-      ]
+      ],
+      "img": "a museum wall covered with hundreds of handwritten letters and notes pinned up, next to a glass case containing a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, dim light",
+      "seed": 21
     },
     {
       "text": "당신이라면, 허락 없이 찍으시겠습니까?",
       "scene": "eyes",
       "hl": [
         "허락 없이"
-      ]
+      ],
+      "img": "extreme close-up of the face of a creepy antique handmade straw-stuffed boy doll about one meter tall, wearing a faded white sailor suit and white sailor hat, small black button eyes, weathered cracked yellowed face with stitched mouth, holding a small stuffed toy lion, black button eyes staring directly into camera, cracked weathered face, darkness around",
+      "seed": 22
     }
   ]
 }

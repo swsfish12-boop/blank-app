@@ -294,15 +294,64 @@ def scene_image(scene, args, rnd):
     raise ValueError(scene)
 
 
+
+# ---------------------------------------------------------------- AI images (Pollinations / Flux)
+STYLE = (", cinematic horror film still, dark moody low-key lighting, desaturated, film grain, "
+         "35mm photo, highly detailed, vertical composition, no text, no watermark")
+
+
+def fetch_image(prompt, seed, path, tries=4):
+    """Pollinations(무료, 키 불필요)로 세로 이미지를 받아 path에 저장. 이미 있으면 재사용."""
+    import time
+    import urllib.parse
+    if path.exists() and path.stat().st_size > 10000:
+        return path
+    url = ("https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt + STYLE)
+           + f"?width=1080&height=1920&nologo=true&seed={seed}&model=flux")
+    for k in range(tries):
+        r = subprocess.run(["curl", "-sS", "-m", "180", "-o", str(path), "-w", "%{http_code}", url],
+                           capture_output=True, text=True)
+        if r.stdout.strip() == "200" and path.exists() and path.stat().st_size > 10000:
+            return path
+        time.sleep(4 * (k + 1))
+    raise RuntimeError(f"이미지 생성 실패: {prompt[:40]}... ({r.stdout} {r.stderr[:200]})")
+
+
+def image_scene(path, args):
+    """생성 이미지 -> 1080x1920 배경. 워터마크(우하단) 잘라내고 어둡게 색보정."""
+    im = Image.open(path).convert("RGB")
+    w, h = im.size
+    im = im.crop((0, 0, w, int(h * 0.93)))  # 하단 워터마크 제거
+    w, h = im.size
+    sc = max(W / w, H / h)
+    im = im.resize((int(w * sc + 1), int(h * sc + 1)), Image.LANCZOS)
+    w, h = im.size
+    im = im.crop(((w - W) // 2, (h - H) // 2, (w - W) // 2 + W, (h - H) // 2 + H))
+    a = np.asarray(im).astype(np.float32)
+    gray = a.mean(axis=2, keepdims=True)
+    a = gray + (a - gray) * 0.7                                  # 채도 낮춤
+    a = a * np.array([0.92, 0.95, 1.0], np.float32) * 0.82       # 차가운 톤 + 어둡게
+    # 자막 영역 가독성을 위한 하단 그라데이션
+    yy = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
+    a *= 1 - 0.55 * np.clip((yy - 0.62) / 0.3, 0, 1)
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    d = ImageDraw.Draw(img)
+    if "year" in args:
+        d.text((540, 300), args["year"], font=font(150, serif=True), fill=(205, 40, 36),
+               anchor="mm", stroke_width=4, stroke_fill=(0, 0, 0))
+    return img
+
 # ---------------------------------------------------------------- per-frame overlays
 def scene_overlay(img, scene, args, lt, ldur, line_text):
     d = ImageDraw.Draw(img)
     if scene == "location":
         en = args["en"]
         n = int(min(1, lt / 1.0) * len(en))
-        d.text((540, 600), en[:n], font=font(64, serif=True), fill=(225, 225, 220), anchor="mm")
+        d.text((540, 600), en[:n], font=font(72, serif=True), fill=(235, 235, 230), anchor="mm",
+                   stroke_width=4, stroke_fill=(0, 0, 0))
         if lt > 0.6:
-            d.text((540, 1000), args["coord"], font=font(40), fill=(150, 160, 160), anchor="mm")
+            d.text((540, 700), args["coord"], font=font(42), fill=(200, 205, 205), anchor="mm",
+                       stroke_width=3, stroke_fill=(0, 0, 0))
     elif scene == "camera":
         c, L, t = (235, 235, 235), 90, 6
         for (x, y, sx, sy) in ((70, 260, 1, 1), (1010, 260, -1, 1), (70, 1700, 1, -1), (1010, 1700, -1, -1)):
@@ -394,6 +443,10 @@ def main(story_path):
         t += dur + GAP
         print(f"  TTS {i + 1}/{len(lines)} {dur:.1f}s  {ln['text']}")
     total = t - GAP + TAIL
+    for i, ln in enumerate(lines):
+        if ln.get("img"):
+            ln["_img"] = fetch_image(ln["img"], ln.get("seed", 1000 + i), work / f"img{i:02d}.jpg")
+            print(f"  이미지 {i + 1}/{len(lines)} OK")
     print(f"총 길이 {total:.1f}s")
 
     voice = np.zeros(int(total * SR) + SR, np.float32)
@@ -429,9 +482,15 @@ def main(story_path):
         seg_start = 0 if li == 0 else ln["_start"] - GAP / 2
         seg_end = lines[li + 1]["_start"] - GAP / 2 if li + 1 < len(lines) else total
         lt, ldur = ft - seg_start, seg_end - seg_start
-        key = (ln["scene"], json.dumps(ln.get("args", {}), sort_keys=True))
+        if ln.get("_img"):
+            key = ("img", str(ln["_img"]), json.dumps(ln.get("args", {}), sort_keys=True))
+        else:
+            key = (ln["scene"], json.dumps(ln.get("args", {}), sort_keys=True))
         if key not in cache:
-            cache[key] = scene_image(ln["scene"], ln.get("args", {}), rnd)
+            if ln.get("_img"):
+                cache[key] = image_scene(ln["_img"], ln.get("args", {}))
+            else:
+                cache[key] = scene_image(ln["scene"], ln.get("args", {}), rnd)
         base = cache[key]
 
         # 느린 줌 (켄 번스)
@@ -451,6 +510,9 @@ def main(story_path):
         d.rounded_rectangle([60, 110, 460, 178], radius=14, fill=(150, 20, 20, 230))
         d.text((260, 144), "실화 괴담 · 미국", font=f_tag, fill=(255, 255, 255), anchor="mm")
         d.text((540, 1780), story["disclaimer"], font=f_small, fill=(170, 170, 170, 200), anchor="mm")
+        if ln.get("_img"):
+            d.text((1020, 144), "AI 재연 이미지", font=f_small, fill=(200, 200, 200, 210), anchor="rm",
+                   stroke_width=2, stroke_fill=(0, 0, 0))
 
         # 자막
         cur = None
