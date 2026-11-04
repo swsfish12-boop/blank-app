@@ -19,7 +19,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-import edge_tts
 
 W, H, FPS = 1080, 1920, 30
 SR = 24000
@@ -38,7 +37,56 @@ def font(size, serif=False):
 
 
 # ---------------------------------------------------------------- TTS
+def tts_backend(story):
+    """'azure'(정식 Azure Speech, 상업 이용 OK) 또는 'edge'(무료 비공식). 환경변수가 우선."""
+    return os.environ.get("TTS_BACKEND") or story.get("tts", "edge")
+
+
+def azure_tts(text, voice, rate, pitch, mp3_path):
+    """Azure Speech REST API. 키는 네트워크 프록시가 주입하므로 AZURE_SPEECH_KEY는 비워 둬도 된다."""
+    from xml.sax.saxutils import escape
+    region = os.environ.get("AZURE_SPEECH_REGION", "koreacentral")
+    key = os.environ.get("AZURE_SPEECH_KEY", "injected-by-proxy")
+    ssml = (f"<speak version='1.0' xml:lang='ko-KR'><voice name='{voice}'>"
+            f"<prosody rate='{rate}' pitch='{pitch}'>{escape(text)}</prosody></voice></speak>")
+    url = f"https://{region}.tts.speech.microsoft.com/cognitiveservices/v1"
+    r = subprocess.run(["curl", "-sS", "-m", "60", "-o", str(mp3_path), "-w", "%{http_code}", "-X", "POST", url,
+                        "-H", f"Ocp-Apim-Subscription-Key: {key}",
+                        "-H", "Content-Type: application/ssml+xml",
+                        "-H", "X-Microsoft-OutputFormat: audio-24khz-96kbitrate-mono-mp3",
+                        "-H", "User-Agent: creepy-shorts",
+                        "--data-binary", ssml.encode("utf-8")], capture_output=True)
+    code = r.stdout.decode().strip()
+    if code != "200":
+        raise RuntimeError(f"Azure TTS 실패 (HTTP {code}): {r.stderr.decode()[:200]} "
+                           f"{Path(mp3_path).read_text(errors='ignore')[:200] if Path(mp3_path).exists() else ''}")
+
+
+def estimate_words(text, audio):
+    """단어 타이밍이 없는 TTS용: 실제 발화 구간을 글자 수 + 쉼표/마침표 쉼 비율로 나눈다."""
+    env = np.abs(audio)
+    on = np.where(env > 0.02)[0]
+    t0, t1 = (on[0] / SR, on[-1] / SR) if len(on) else (0.0, len(audio) / SR)
+    words = text.split()
+    weights = []
+    for w_ in words:
+        wt = len(w_.strip(",.?!")) + 0.5
+        if w_.endswith(","):
+            wt += 2.5
+        elif w_.endswith((".", "?", "!")):
+            wt += 4.0
+        weights.append(wt)
+    total = sum(weights) or 1
+    out, cur = [], t0
+    for w_, wt in zip(words, weights):
+        dur = (t1 - t0) * wt / total
+        out.append((cur, dur, w_.strip(",.?!")))
+        cur += dur
+    return out
+
+
 async def _tts(text, voice, rate, pitch, mp3_path):
+    import edge_tts
     proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
     com = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch,
                                boundary="WordBoundary", proxy=proxy)
@@ -440,8 +488,13 @@ def main(story_path):
     voice_parts, t = [], LEAD_IN
     for i, ln in enumerate(lines):
         mp3 = work / f"line{i:02d}.mp3"
-        words = asyncio.run(_tts(ln["text"], story["voice"], story["rate"], story["pitch"], mp3))
-        audio = decode(mp3)
+        if tts_backend(story) == "azure":
+            azure_tts(ln["text"], story["voice"], story["rate"], story["pitch"], mp3)
+            audio = decode(mp3)
+            words = estimate_words(ln["text"], audio)
+        else:
+            words = asyncio.run(_tts(ln["text"], story["voice"], story["rate"], story["pitch"], mp3))
+            audio = decode(mp3)
         dur = len(audio) / SR
         ln["_start"], ln["_dur"], ln["_audio"] = t, dur, audio
         ln["_chunks"] = [(t + s, txt, off) for s, txt, off in chunk_words(ln["text"], words)]
