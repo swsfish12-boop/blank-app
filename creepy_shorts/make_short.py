@@ -331,6 +331,12 @@ def image_scene(path, args):
     gray = a.mean(axis=2, keepdims=True)
     a = gray + (a - gray) * 0.7                                  # 채도 낮춤
     a = a * np.array([0.92, 0.95, 1.0], np.float32) * 0.82       # 차가운 톤 + 어둡게
+    if args.get("grade") == "dark":
+        # 밝게 나온 이미지를 공포 톤으로: 대비↑, 노출↓, 중앙 스포트라이트
+        a = np.clip((a - 128) * 1.25 + 108, 0, 255) * 0.72
+        yy2, xx2 = np.mgrid[0:H, 0:W].astype(np.float32)
+        r = np.sqrt(((xx2 - W / 2) / (W * 0.55)) ** 2 + ((yy2 - H * 0.42) / (H * 0.42)) ** 2)
+        a *= (1 - 0.85 * np.clip(r - 0.35, 0, 1))[..., None]
     # 자막 영역 가독성을 위한 하단 그라데이션
     yy = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
     a *= 1 - 0.55 * np.clip((yy - 0.62) / 0.3, 0, 1)
