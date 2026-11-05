@@ -1,0 +1,201 @@
+{
+  "id": "red_girl_taiwan",
+  "title": "등산 영상에 찍힌 빨간 옷의 소녀",
+  "tag": "실화 괴담 · 대만",
+  "voice": "ko-KR-InJoonNeural",
+  "rate": "+4%",
+  "pitch": "-4Hz",
+  "style": "vhs",
+  "vhs_date": "1998",
+  "hl_color": [
+    235,
+    35,
+    35
+  ],
+  "disclaimer": "실제 보도·기록 기반 | 초자연 현상은 전해지는 이야기입니다",
+  "music": {
+    "box_until": 2,
+    "heartbeat": [
+      4,
+      8
+    ],
+    "climax": 8
+  },
+  "whispers": [
+    "이리 와",
+    "같이 가자",
+    "뒤에 있어"
+  ],
+  "ghost_calls": [
+    {
+      "text": "여기야...",
+      "line": 9,
+      "after": 0.45,
+      "gain": 0.9
+    }
+  ],
+  "jumpscare": {
+    "img": "close-up of a little girl in a red hood whose face is completely hidden in deep black shadow, no visible eyes, dark forest",
+    "seed": 310,
+    "style": "cinema",
+    "delay": 1.2,
+    "dur": 0.75
+  },
+  "lines": [
+    {
+      "text": "1998년, 대만을 얼어붙게 만든 홈비디오가 있습니다.",
+      "hl": [
+        "얼어붙게"
+      ],
+      "vhs": true,
+      "img": "a misty mountain forest hiking trail in Taiwan, dense subtropical trees, overcast",
+      "seed": 301,
+      "style": "vhs"
+    },
+    {
+      "text": "타이중 다컹 산. 한 가족의 등산 영상입니다.",
+      "hl": [
+        "등산 영상"
+      ],
+      "vhs": true,
+      "img": "a Taiwanese family of hikers walking up a forest mountain trail seen from behind, 1998",
+      "seed": 302,
+      "style": "vhs"
+    },
+    {
+      "text": "웃음소리 가득한, 평범한 나들이였죠.",
+      "hl": [
+        "평범한"
+      ],
+      "vhs": true,
+      "pause": 0.5,
+      "img": "happy Taiwanese family hikers smiling and waving on a mountain path, 1990s home video",
+      "seed": 303,
+      "style": "vhs"
+    },
+    {
+      "text": "그런데 돌아온 직후, 일행 한 명이 세상을 떠납니다.",
+      "hl": [
+        "세상을 떠납니다"
+      ],
+      "boom": true,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "a traditional Taiwanese funeral altar at night with white chrysanthemums, candles and incense smoke, dim",
+      "seed": 305,
+      "style": "cinema"
+    },
+    {
+      "text": "장례식 날, 가족들은 그 테이프를 다시 틀었습니다.",
+      "hl": [
+        "그 테이프"
+      ],
+      "args": {
+        "grade": "dark"
+      },
+      "img": "an old CRT television glowing in a dark room, a VHS tape being inserted into a VCR, silhouettes of mourners watching",
+      "seed": 306,
+      "style": "cinema"
+    },
+    {
+      "text": "그리고... 보고 말았습니다.",
+      "pause": 0.2,
+      "zoom": 0.18,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "an old CRT television in a dark 1990s Taiwanese living room showing a TV broadcast with static, eerie glow",
+      "seed": 311,
+      "style": "cinema"
+    },
+    {
+      "text": "일행 맨 뒤를 따라오는, 빨간 옷의 여자아이.",
+      "hl": [
+        "빨간 옷"
+      ],
+      "vhs": true,
+      "riser": 2.6,
+      "sting": true,
+      "whisper": true,
+      "flash": {
+        "at": 0.75,
+        "frames": 3
+      },
+      "args": {
+        "grade": [
+          "vhs",
+          "red_pop"
+        ]
+      },
+      "img": "a little girl in a red dress standing alone between dark trees in fog, watching, face in shadow",
+      "seed": 309,
+      "style": "vhs"
+    },
+    {
+      "text": "그날 산에서, 그 아이를 본 사람은 아무도 없었다고 합니다.",
+      "hl": [
+        "아무도"
+      ],
+      "vhs": true,
+      "whisper": true,
+      "args": {
+        "grade": [
+          "vhs",
+          "red_pop"
+        ]
+      },
+      "img": "a small girl in a bright red dress and red hat standing far behind a group of hikers on a misty forest trail, distant, blurry, unsettling",
+      "seed": 308,
+      "style": "vhs"
+    },
+    {
+      "text": "얼굴은 늘 그림자에 가려, 눈이 보이지 않았죠.",
+      "hl": [
+        "눈이 보이지"
+      ],
+      "shake": true,
+      "whisper": true,
+      "zoom": 0.2,
+      "args": {
+        "grade": [
+          "red_pop",
+          "dark"
+        ]
+      },
+      "img": "a shadowy figure in a red hooded cloak emerging from pitch darkness, face hidden, only glowing pale chin visible, horror film",
+      "seed": 667,
+      "style": "raw"
+    },
+    {
+      "text": "대만에는 이런 말이 있습니다. 산에서 누가 부르면, 절대 대답하지 말라.",
+      "hl": [
+        "절대 대답하지"
+      ],
+      "pause": 1.3,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "an empty misty mountain forest path at dusk in Taiwan, nobody there, eerie silence",
+      "seed": 312,
+      "style": "cinema"
+    },
+    {
+      "text": "방금... 누가 당신을 부르지 않았나요?",
+      "hl": [
+        "당신을"
+      ],
+      "fx": "whisper",
+      "zoom": 0.12,
+      "args": {
+        "grade": [
+          "red_pop",
+          "dark"
+        ]
+      },
+      "img": "a dark forest at night seen over someone's shoulder, a tiny red figure far away between the trees",
+      "seed": 313,
+      "style": "cinema"
+    }
+  ]
+}
