@@ -347,6 +347,8 @@ STYLES = {
     "cinema": (", cinematic horror film still, dark moody low-key lighting, desaturated, film grain, "
                "35mm photo, highly detailed, vertical composition, no text, no watermark"),
     "raw": "",
+    "ukiyo": (", Edo period Japanese ukiyo-e woodblock print style, aged paper texture, muted colors, "
+              "vertical composition, no text, no letters, no watermark"),
     "oldphoto": (", 1920s black and white antique photograph, grainy, scratched, faded, low contrast, "
                  "vertical composition, no text, no watermark"),
     "vhs": (", grainy 1990s VHS camcorder home video still, low resolution, washed out colors, "
@@ -606,6 +608,18 @@ def footsteps(buf, ta, count, rng, gain=1.0, gap=0.62):
         t += gap * rng.uniform(0.85, 1.2)
 
 
+def temple_bell(buf, t, gain=1.0):
+    """일본 사찰 종(린) 소리: 비조화 배음 + 긴 여운."""
+    L = int(6 * SR)
+    tt = np.arange(L) / SR
+    f0 = 523.0
+    sig = np.zeros(L, np.float32)
+    for ratio, amp, dec in [(1, 1.0, 0.55), (2.76, 0.55, 0.9), (5.40, 0.3, 1.6), (8.93, 0.15, 2.6), (0.5, 0.25, 0.4)]:
+        sig += amp * np.sin(2 * np.pi * f0 * ratio * tt) * np.exp(-tt * dec)
+    sig *= (1 + 0.15 * np.sin(2 * np.pi * 3.1 * tt)) * np.clip(tt / 0.003, 0, 1)
+    add_at(buf, t, reverb(sig * 0.06, secs=3.5, wet=0.4, seed=77), gain)
+
+
 def horror_bed(total, lines, story, js, rng):
     n = int(total * SR)
     t = np.arange(n) / SR
@@ -643,6 +657,8 @@ def horror_bed(total, lines, story, js, rng):
             stinger(bed, starts[k] - 0.02, rng, amp=0.6)
         if ln.get("flash"):
             stinger(bed, ln["_flash_t"], rng, amp=0.55, bright=True)
+        if ln.get("bell"):
+            temple_bell(bed, starts[k] - 0.3)
         if ln.get("steps"):
             footsteps(bed, starts[k] + 0.2, ln["steps"], rng)
         if ln.get("vhs"):
@@ -821,7 +837,7 @@ def main(story_path):
     # 2) 이미지 (병렬 생성)
     jobs = [(i, ln["img"], ln.get("seed", 1000 + i), ln.get("style", story.get("style", "cinema")),
              work / f"img{i:02d}.jpg") for i, ln in enumerate(lines) if ln.get("img") and not ln.get("photo")]
-    if js:
+    if js and not js.get("photo"):
         jobs.append(("js", js["img"], js.get("seed", 666), js.get("style", "cinema"), work / "img_js.jpg"))
     with cf.ThreadPoolExecutor(3) as ex:
         futs = {ex.submit(fetch_image, p, s, path, 4, st): i for i, p, s, st, path in jobs}
@@ -893,7 +909,8 @@ def main(story_path):
     cache = {}
     js_img = flash_img = None
     if js:
-        js_img = image_scene(work / "img_js.jpg", {"grade": ["red_pop", "dark"]})
+        js_img = image_scene(ROOT / js["photo"] if js.get("photo") else work / "img_js.jpg",
+                             {"grade": js.get("grade", ["red_pop", "dark"])})
         fa = np.asarray(js_img).astype(np.float32) * np.array([1.35, 0.55, 0.55], np.float32)
         flash_img = np.clip(fa, 0, 255).astype(np.uint8)
     hl_color = tuple(story.get("hl_color", [235, 40, 40]))

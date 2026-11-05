@@ -8,3 +8,6 @@
 
 Modified (cropped, color-graded, VHS effect). CC BY 3.0 requires attribution in the video description.
 | hinterkaifeck_memorial.jpg | [File:Hinterkaifeck-Marterl.jpg](https://commons.wikimedia.org/wiki/File:Hinterkaifeck-Marterl.jpg) | Andreas Keller | Copyrighted free use |
+| oiwa_hokuei_lantern.jpg | [File:Shunkosai Hokuei Obake.jpg](https://commons.wikimedia.org/wiki/File:Shunkosai_Hokuei_Obake.jpg) | Shunkōsai Hokuei (c.1830) | Public domain |
+| oiwa_shrine_torii.jpg | [File:Oiwa Inari Tamiya Shrine - Torii.jpg](https://commons.wikimedia.org/wiki/File:Oiwa_Inari_Tamiya_Shrine_-_Torii.jpg) | Fred Cherrygarden | CC BY-SA 4.0 |
+| oiwa_shrine_hokora.jpg | [File:Oiwa Inari Tamiya Shrine - Hokora.jpg](https://commons.wikimedia.org/wiki/File:Oiwa_Inari_Tamiya_Shrine_-_Hokora.jpg) | Fred Cherrygarden | CC BY-SA 4.0 |
