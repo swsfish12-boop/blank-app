@@ -403,10 +403,14 @@ def image_scene(path, args):
         a = a * 0.88 + 14
         a *= np.array([1.0, 1.02, 0.94], np.float32)             # 바랜 테이프 색
     if "dark" in grade or "red_pop" in grade:
-        a = np.clip((a - 128) * 1.22 + 110, 0, 255) * 0.78
+        # 너무 어두운 원본은 먼저 밝혀서 디테일이 남게 한다
+        mean = float(a.mean())
+        if mean < 70:
+            a = np.clip(a * min(2.2, 70 / max(mean, 1)), 0, 255)
+        a = np.clip((a - 128) * 1.15 + 118, 0, 255) * 0.9
         yy2, xx2 = np.mgrid[0:H, 0:W].astype(np.float32)
-        rr = np.sqrt(((xx2 - W / 2) / (W * 0.55)) ** 2 + ((yy2 - H * 0.42) / (H * 0.42)) ** 2)
-        a *= (1 - 0.85 * np.clip(rr - 0.35, 0, 1))[..., None]
+        rr = np.sqrt(((xx2 - W / 2) / (W * 0.6)) ** 2 + ((yy2 - H * 0.42) / (H * 0.45)) ** 2)
+        a *= (1 - 0.7 * np.clip(rr - 0.4, 0, 1))[..., None]
     yy = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
     a *= 1 - 0.55 * np.clip((yy - 0.62) / 0.3, 0, 1)            # 자막 영역 어둡게
     img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
@@ -636,14 +640,59 @@ NARR_FX = ("rubberband=pitch=0.89,"
            "acompressor=threshold=0.1:ratio=4:attack=5:release=120:makeup=2,"
            "equalizer=f=160:t=q:w=1.2:g=4,highpass=f=60,"
            "aecho=0.8:0.6:70|170|310:0.28|0.18|0.1")
-WHISPER_FX = ("rubberband=pitch=0.93,highpass=f=650,"
+NARR_FX_LIGHT = ("acompressor=threshold=0.12:ratio=3:attack=5:release=120:makeup=1.5,"
+                 "equalizer=f=140:t=q:w=1.2:g=2,highpass=f=60,"
+                 "aecho=0.8:0.45:60|150|280:0.18|0.12|0.07")
+WHISPER_FX = ("rubberband=pitch=0.97,highpass=f=500,"
               "acompressor=threshold=0.05:ratio=6:attack=3:release=80:makeup=4,"
               "aecho=0.8:0.85:45|120|240:0.45|0.3|0.2")
 GHOST_FX = ("rubberband=pitch=1.1,highpass=f=350,lowpass=f=3200,"
             "aecho=0.8:0.9:260|540|900:0.5|0.35|0.2")
 
 
+_QWEN = {}
+
+
+def qwen_model():
+    if "m" not in _QWEN:
+        import torch
+        from qwen_tts import Qwen3TTSModel
+        torch.set_num_threads(os.cpu_count() or 4)
+        _QWEN["m"] = Qwen3TTSModel.from_pretrained("Qwen/Qwen3-TTS-12Hz-1.7B-Base", device_map="cpu",
+                                                   dtype=torch.float32)
+    return _QWEN["m"]
+
+
+def qwen_clone(story, text, wav_path):
+    """Qwen3-TTS(Apache-2.0) 목소리 복제: story['voice_ref'] 목소리로 text를 읽는다. 결과는 캐시."""
+    import hashlib
+    import soundfile as sf
+    ref = ROOT / story["voice_ref"]
+    ref_text = (ROOT / story["voice_ref"]).with_suffix(".txt").read_text(encoding="utf-8").strip()
+    key = hashlib.md5((text + "|" + str(ref) + "|" + str(story.get("seed_voice", 0))).encode()).hexdigest()[:10]
+    cache = wav_path.with_name(wav_path.stem + f"_{key}.wav")
+    if not cache.exists():
+        import torch
+        torch.manual_seed(story.get("seed_voice", 0))
+        w, sr = qwen_model().generate_voice_clone(text=text, language="Korean", ref_audio=str(ref),
+                                                  ref_text=ref_text)
+        sf.write(cache, w[0], sr)
+    a, sr = sf.read(cache, dtype="float32")
+    if a.ndim > 1:
+        a = a.mean(axis=1)
+    if sr != SR:
+        idx = np.linspace(0, len(a) - 1, int(len(a) * SR / sr))
+        a = np.interp(idx, np.arange(len(a)), a).astype(np.float32)
+    on = np.where(np.abs(a) > 0.02)[0]                    # 앞뒤 무음 정리
+    if len(on):
+        a = a[max(0, on[0] - int(0.05 * SR)): on[-1] + int(0.25 * SR)]
+    return a
+
+
 def tts_line(story, text, voice, rate, pitch, mp3):
+    if story.get("tts") == "qwen" and voice == story["voice"]:
+        audio = qwen_clone(story, text, Path(mp3).with_suffix(".wav"))
+        return audio, estimate_words(text, audio)
     if tts_backend(story) == "azure":
         azure_tts(text, voice, rate, pitch, mp3)
         audio = decode(mp3)
@@ -690,7 +739,7 @@ def main(story_path):
 
     # 2) 이미지 (병렬 생성)
     jobs = [(i, ln["img"], ln.get("seed", 1000 + i), ln.get("style", story.get("style", "cinema")),
-             work / f"img{i:02d}.jpg") for i, ln in enumerate(lines) if ln.get("img")]
+             work / f"img{i:02d}.jpg") for i, ln in enumerate(lines) if ln.get("img") and not ln.get("photo")]
     if js:
         jobs.append(("js", js["img"], js.get("seed", 666), js.get("style", "cinema"), work / "img_js.jpg"))
     with cf.ThreadPoolExecutor(3) as ex:
@@ -699,7 +748,9 @@ def main(story_path):
             fu.result()
             print(f"  이미지 {futs[fu]} OK")
     for i, ln in enumerate(lines):
-        if ln.get("img"):
+        if ln.get("photo"):
+            ln["_img"] = ROOT / ln["photo"]                      # 실제 사진 (assets/photos/CREDITS.md)
+        elif ln.get("img"):
             ln["_img"] = work / f"img{i:02d}.jpg"
 
     # 3) 오디오: 내레이션 / 속삭임 / 유령 소리 / 배경음
@@ -710,7 +761,8 @@ def main(story_path):
         add_at(wsp if ln.get("fx") == "whisper" else narr, ln["_start"], ln["_audio"])
     write_wav(work / "narr_raw.wav", narr)
     write_wav(work / "wsp_raw.wav", wsp)
-    narr = ffmpeg_fx(work / "narr_raw.wav", work / "narr.wav", NARR_FX)[:n]
+    narr = ffmpeg_fx(work / "narr_raw.wav", work / "narr.wav",
+                     NARR_FX_LIGHT if story.get("narr_fx") == "light" else NARR_FX)[:n]
     wsp = ffmpeg_fx(work / "wsp_raw.wav", work / "wsp.wav", WHISPER_FX)[:n]
 
     ghost = np.zeros(n, np.float32)
@@ -845,7 +897,7 @@ def main(story_path):
 
         arr = np.asarray(frame.convert("RGB")).astype(np.float32)
         flick = 1.0 - 0.07 * rng.random() - (0.45 if rng.random() < 0.02 else 0)
-        fade_in = min(1.0, lt / 0.15) if (li == 0 or ln.get("img") != lines[li - 1].get("img")) else 1.0
+        fade_in = min(1.0, lt / 0.15) if (li == 0 or ln.get("_img") != lines[li - 1].get("_img")) else 1.0
         if js and li == len(lines) - 1 and ft > last_end:      # 정적 구간: 서서히 어두워짐
             fade_in *= max(0.25, 1 - (ft - last_end) / (js["t"] - last_end + 1e-6))
         arr = (arr + grains[fi % len(grains)]) * vign * flick * fade_in

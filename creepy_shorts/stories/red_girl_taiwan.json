@@ -50,7 +50,11 @@
       "vhs": true,
       "img": "a misty mountain forest hiking trail in Taiwan, dense subtropical trees, overcast",
       "seed": 301,
-      "style": "vhs"
+      "style": "vhs",
+      "photo": "assets/photos/dakeng_trail_1.jpg",
+      "args": {
+        "grade": "vhs"
+      }
     },
     {
       "text": "타이중 다컹 산. 한 가족의 등산 영상입니다.",
@@ -60,7 +64,11 @@
       "vhs": true,
       "img": "a Taiwanese family of hikers walking up a forest mountain trail seen from behind, 1998",
       "seed": 302,
-      "style": "vhs"
+      "style": "vhs",
+      "photo": "assets/photos/dakeng_trail_boardwalk.jpg",
+      "args": {
+        "grade": "vhs"
+      }
     },
     {
       "text": "웃음소리 가득한, 평범한 나들이였죠.",
@@ -71,7 +79,11 @@
       "pause": 0.5,
       "img": "happy Taiwanese family hikers smiling and waving on a mountain path, 1990s home video",
       "seed": 303,
-      "style": "vhs"
+      "style": "vhs",
+      "photo": "assets/photos/dakeng_trail_path.jpg",
+      "args": {
+        "grade": "vhs"
+      }
     },
     {
       "text": "그런데 돌아온 직후, 일행 한 명이 세상을 떠납니다.",
@@ -197,5 +209,10 @@
       "seed": 313,
       "style": "cinema"
     }
-  ]
+  ],
+  "tts": "qwen",
+  "voice_ref": "voices/narrator_b.wav",
+  "narr_fx": "light",
+  "seed_voice": 7,
+  "credits": "Photos: lienyuan lee, CC BY 3.0, via Wikimedia Commons"
 }
