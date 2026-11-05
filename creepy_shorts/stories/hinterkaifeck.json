@@ -4,8 +4,8 @@
   "tag": "실화 괴담 · 독일",
   "tts": "qwen",
   "voice": "ko-KR-InJoonNeural",
-  "voice_ref": "voices/narrator_b.wav",
-  "narr_fx": "light",
+  "voice_ref": "voices/narrator_g2.wav",
+  "narr_fx": "human",
   "seed_voice": 7,
   "rate": "+0%",
   "pitch": "+0Hz",
@@ -210,5 +210,6 @@
       "img": "a ceiling attic hatch slightly open seen from below, pitch black darkness inside, old house at night",
       "seed": 413
     }
-  ]
+  ],
+  "humanize": true
 }

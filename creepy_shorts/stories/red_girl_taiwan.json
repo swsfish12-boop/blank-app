@@ -211,8 +211,9 @@
     }
   ],
   "tts": "qwen",
-  "voice_ref": "voices/narrator_b.wav",
-  "narr_fx": "light",
+  "voice_ref": "voices/narrator_g2.wav",
+  "narr_fx": "human",
   "seed_voice": 7,
-  "credits": "Photos: lienyuan lee, CC BY 3.0, via Wikimedia Commons"
+  "credits": "Photos: lienyuan lee, CC BY 3.0, via Wikimedia Commons",
+  "humanize": true
 }

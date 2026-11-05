@@ -672,6 +672,11 @@ NARR_FX = ("rubberband=pitch=0.89,"
 NARR_FX_LIGHT = ("acompressor=threshold=0.12:ratio=3:attack=5:release=120:makeup=1.5,"
                  "equalizer=f=140:t=q:w=1.2:g=2,highpass=f=60,"
                  "aecho=0.8:0.45:60|150|280:0.18|0.12|0.07")
+NARR_FX_HUMAN = ("afftdn=nr=8:nf=-50,highpass=f=70,"
+                 "equalizer=f=120:t=q:w=1:g=2.5,deesser=i=0.4,"
+                 "equalizer=f=7500:t=q:w=2:g=-3,lowpass=f=10500,"
+                 "acompressor=threshold=0.15:ratio=2.5:attack=10:release=180:makeup=1.4,"
+                 "asoftclip=type=tanh")
 WHISPER_FX = ("rubberband=pitch=0.97,highpass=f=500,"
               "acompressor=threshold=0.05:ratio=6:attack=3:release=80:makeup=4,"
               "aecho=0.8:0.85:45|120|240:0.45|0.3|0.2")
@@ -718,6 +723,43 @@ def qwen_clone(story, text, wav_path):
     return a
 
 
+def bandpass(x, lo, hi, order=2):
+    from scipy.signal import butter, lfilter
+    b, a = butter(order, [lo / (SR / 2), hi / (SR / 2)], btype="band")
+    return lfilter(b, a, x).astype(np.float32)
+
+
+def breath_sound(rng, dur=None, gain=0.035):
+    """사람이 문장 앞에서 들이쉬는 숨소리 (필터링한 노이즈 + 자연스러운 곡선)."""
+    dur = dur or rng.uniform(0.32, 0.5)
+    L = int(dur * SR)
+    t = np.arange(L) / SR
+    n = bandpass(rng.normal(0, 1, L), 350, 2600)
+    n += 0.4 * bandpass(rng.normal(0, 1, L), 2600, 5200)
+    env = np.sin(np.pi * t / dur) ** 1.6 * (0.55 + 0.45 * t / dur)
+    return (n * env / (np.max(np.abs(n)) + 1e-9) * gain).astype(np.float32)
+
+
+def room_tone(n, rng, level=0.0012):
+    """완전 무음 대신 아주 작은 방 소음(핑크 노이즈)."""
+    from scipy.signal import lfilter
+    w = rng.normal(0, 1, n)
+    b = [0.049922035, -0.095993537, 0.050612699, -0.004408786]
+    a = [1, -2.494956002, 2.017265875, -0.522189400]
+    pink = lfilter(b, a, w)
+    pink = bandpass(pink, 60, 6000)
+    return (pink / (np.std(pink) + 1e-9) * level).astype(np.float32)
+
+
+def vary_tempo(audio, factor, work, tag):
+    """줄마다 말 빠르기를 살짝 다르게 (음높이는 유지)."""
+    if abs(factor - 1) < 0.005:
+        return audio
+    src, dst = work / f"_tmp_{tag}.wav", work / f"_tmp_{tag}_t.wav"
+    write_wav(src, audio)
+    return ffmpeg_fx(src, dst, f"rubberband=tempo={factor:.3f}")
+
+
 def tts_line(story, text, voice, rate, pitch, mp3):
     if story.get("tts") == "qwen" and voice == story["voice"]:
         audio = qwen_clone(story, text, Path(mp3).with_suffix(".wav"))
@@ -743,18 +785,28 @@ def main(story_path):
 
     # 1) TTS (줄마다 개별 생성 -> 정확한 자막 타이밍)
     lines = story["lines"]
+    human = story.get("humanize", False)
+    hrng = np.random.default_rng(story.get("seed_voice", 0) + 101)
+    breaths = []
     t = LEAD_IN
     for i, ln in enumerate(lines):
         audio, words = tts_line(story, ln["text"], ln.get("voice", story["voice"]),
                                 ln.get("rate", story["rate"]), ln.get("pitch", story["pitch"]),
                                 work / f"line{i:02d}.mp3")
+        if human and ln.get("fx") != "whisper":
+            audio = vary_tempo(audio, hrng.uniform(0.95, 1.02), work, f"l{i}")
+            words = estimate_words(ln["text"], audio)
+            if i > 0 and hrng.random() < 0.8:
+                b = breath_sound(hrng)
+                breaths.append((t - len(b) / SR - 0.04, b))
         dur = len(audio) / SR
         ln["_start"], ln["_dur"], ln["_audio"] = t, dur, audio
         ln["_chunks"] = [(t + s, txt, off) for s, txt, off in chunk_words(ln["text"], words)]
         ln["_mask"] = highlight_mask(ln["text"], ln.get("hl", []))
         if ln.get("flash"):
             ln["_flash_t"] = t + dur * ln["flash"].get("at", 0.6)
-        t += dur + GAP + ln.get("pause", 0)
+        gap = hrng.uniform(0.34, 0.6) if human else GAP
+        t += dur + gap + ln.get("pause", 0)
         print(f"  TTS {i + 1}/{len(lines)} {dur:.1f}s  {ln['text']}")
     last_end = lines[-1]["_start"] + lines[-1]["_dur"]
     js = None
@@ -788,10 +840,14 @@ def main(story_path):
     wsp = np.zeros(n, np.float32)
     for ln in lines:
         add_at(wsp if ln.get("fx") == "whisper" else narr, ln["_start"], ln["_audio"])
+    for bt, b in breaths:
+        add_at(narr, bt, b)
     write_wav(work / "narr_raw.wav", narr)
     write_wav(work / "wsp_raw.wav", wsp)
-    narr = ffmpeg_fx(work / "narr_raw.wav", work / "narr.wav",
-                     NARR_FX_LIGHT if story.get("narr_fx") == "light" else NARR_FX)[:n]
+    fx = {"light": NARR_FX_LIGHT, "human": NARR_FX_HUMAN}.get(story.get("narr_fx"), NARR_FX)
+    narr = ffmpeg_fx(work / "narr_raw.wav", work / "narr.wav", fx)[:n]
+    if story.get("narr_fx") == "human":
+        narr = reverb(narr, secs=0.4, wet=0.08, seed=21, damp=6)    # 작은 방 울림
     wsp = ffmpeg_fx(work / "wsp_raw.wav", work / "wsp.wav", WHISPER_FX)[:n]
 
     ghost = np.zeros(n, np.float32)
@@ -824,6 +880,8 @@ def main(story_path):
     vo = np.abs(narr) + np.abs(wsp)
     duck = 1 - 0.3 * np.clip(lowpass(vo, 2400) * 8, 0, 1)
     mix = narr * 1.0 + wsp * 1.1 + ghost + bed * duck
+    if human:
+        mix += room_tone(n, hrng)
     mix /= np.max(np.abs(mix)) + 1e-9
     write_wav(work / "mix.wav", mix * 0.95)
 

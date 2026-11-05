@@ -1,0 +1,1 @@
+voice: Qwen3-TTS VoiceDesign seed=11, instruct='A very deep, resonant bass voice of a Korean man in his 50s. Documentary narrator. Slow, deliberate, calm but chilling delivery, with natural audible breaths between sentences.' (median F0 102Hz)
