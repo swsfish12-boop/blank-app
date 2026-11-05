@@ -7,3 +7,4 @@
 | dakeng_trail_path.jpg | [File:Dakeng Scenic Area 大坑風景區 - panoramio.jpg](https://commons.wikimedia.org/wiki/File:Dakeng_Scenic_Area_%E5%A4%A7%E5%9D%91%E9%A2%A8%E6%99%AF%E5%8D%80_-_panoramio.jpg) | lienyuan lee | CC BY 3.0 |
 
 Modified (cropped, color-graded, VHS effect). CC BY 3.0 requires attribution in the video description.
+| hinterkaifeck_memorial.jpg | [File:Hinterkaifeck-Marterl.jpg](https://commons.wikimedia.org/wiki/File:Hinterkaifeck-Marterl.jpg) | Andreas Keller | Copyrighted free use |

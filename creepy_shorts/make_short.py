@@ -347,6 +347,8 @@ STYLES = {
     "cinema": (", cinematic horror film still, dark moody low-key lighting, desaturated, film grain, "
                "35mm photo, highly detailed, vertical composition, no text, no watermark"),
     "raw": "",
+    "oldphoto": (", 1920s black and white antique photograph, grainy, scratched, faded, low contrast, "
+                 "vertical composition, no text, no watermark"),
     "vhs": (", grainy 1990s VHS camcorder home video still, low resolution, washed out colors, "
             "overcast, slightly blurry, vertical composition, no text, no watermark"),
 }
@@ -399,6 +401,10 @@ def image_scene(path, args):
         a = gray + (a - gray) * 0.7
         a = a * np.array([0.92, 0.95, 1.0], np.float32)
     a *= 0.82
+    if "old" in grade:
+        g2 = a.mean(axis=2, keepdims=True)
+        a = g2 * np.array([1.06, 0.97, 0.82], np.float32)        # 바랜 세피아 흑백
+        a = a * 0.9 + 10
     if "vhs" in grade:
         a = a * 0.88 + 14
         a *= np.array([1.0, 1.02, 0.94], np.float32)             # 바랜 테이프 색
@@ -581,6 +587,25 @@ def stinger(buf, t, rng, amp=1.0, bright=False):
     add_at(buf, t, sig, amp)
 
 
+def footsteps(buf, ta, count, rng, gain=1.0, gap=0.62):
+    """다락 나무 바닥 위 발소리: 둔탁한 쿵 + 가끔 삐걱."""
+    t = ta
+    for k in range(count):
+        L = int(0.35 * SR)
+        tt = np.arange(L) / SR
+        thud = np.sin(2 * np.pi * (70 + 40 * np.exp(-tt * 40)) * tt) * np.exp(-tt * 22)
+        nz = lowpass(rng.normal(0, 1, L), 12) * np.exp(-tt * 30) * 1.5
+        add_at(buf, t, reverb(thud + nz, secs=0.9, wet=0.35, seed=k), 0.45 * gain)
+        if rng.random() < 0.45:
+            Lc = int(0.5 * SR)
+            tc = np.arange(Lc) / SR
+            f = 380 + 120 * np.sin(2 * np.pi * 1.3 * tc) + rng.uniform(-40, 40)
+            creak = np.sin(2 * np.pi * np.cumsum(f) / SR) * (0.5 + 0.5 * np.sin(2 * np.pi * 37 * tc))
+            creak *= np.sin(np.pi * tc / tc[-1]) * 0.05
+            add_at(buf, t + 0.05, reverb(creak, secs=1.2, wet=0.4, seed=k + 50), gain)
+        t += gap * rng.uniform(0.85, 1.2)
+
+
 def horror_bed(total, lines, story, js, rng):
     n = int(total * SR)
     t = np.arange(n) / SR
@@ -618,6 +643,8 @@ def horror_bed(total, lines, story, js, rng):
             stinger(bed, starts[k] - 0.02, rng, amp=0.6)
         if ln.get("flash"):
             stinger(bed, ln["_flash_t"], rng, amp=0.55, bright=True)
+        if ln.get("steps"):
+            footsteps(bed, starts[k] + 0.2, ln["steps"], rng)
         if ln.get("vhs"):
             i, j = int(starts[k] * SR), int(min(n, (ends[k] + 0.3) * SR))
             hiss = rng.normal(0, 1, j - i)
@@ -629,6 +656,8 @@ def horror_bed(total, lines, story, js, rng):
         fade = np.linspace(1, 0, max(1, min(int(0.25 * SR), b - a)))
         bed[a:a + len(fade)] *= fade
         bed[a + len(fade):b] = 0
+        if js.get("steps"):
+            footsteps(bed, last_end + 0.35, js["steps"], rng, gain=1.2, gap=0.5)
         stinger(bed, js["t"], rng, amp=1.7, bright=True)
         stinger(bed, js["t"], rng, amp=0.9)
     f0 = int(0.4 * SR)
@@ -910,6 +939,16 @@ def main(story_path):
                 arr[b0:b1] = np.roll(arr[b0:b1], int(rng.integers(-40, 40)), axis=1) + 30
             if rng.random() < 0.04:
                 arr = np.roll(arr, int(rng.integers(-10, 10)), axis=0)
+        if ln.get("film"):
+            for _ in range(int(rng.integers(0, 3))):                 # 필름 긁힘
+                x = int(rng.integers(0, W))
+                arr[:, x:x + 2] = arr[:, x:x + 2] * 0.5 + 90
+            for _ in range(int(rng.integers(3, 12))):                # 먼지
+                x, y = int(rng.integers(0, W - 6)), int(rng.integers(0, H - 6))
+                arr[y:y + int(rng.integers(2, 6)), x:x + int(rng.integers(2, 6))] = rng.choice([15, 220])
+            if rng.random() < 0.05:
+                arr = np.roll(arr, int(rng.integers(-12, 12)), axis=0)
+            arr *= 1.0 - 0.08 * rng.random()
         arr = np.clip(arr, 0, 255).astype(np.uint8)
         if ln.get("glitch") and rng.random() < 0.4:
             arr = apply_glitch(arr, rng, rng.uniform(0.4, 1.0))

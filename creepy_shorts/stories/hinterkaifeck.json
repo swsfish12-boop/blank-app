@@ -1,0 +1,214 @@
+{
+  "id": "hinterkaifeck",
+  "title": "나간 발자국이 없는 집, 힌터카이페크",
+  "tag": "실화 괴담 · 독일",
+  "tts": "qwen",
+  "voice": "ko-KR-InJoonNeural",
+  "voice_ref": "voices/narrator_b.wav",
+  "narr_fx": "light",
+  "seed_voice": 7,
+  "rate": "+0%",
+  "pitch": "+0Hz",
+  "style": "cinema",
+  "hl_color": [
+    235,
+    35,
+    35
+  ],
+  "disclaimer": "실제 사건 기록 기반 | 일부 내용은 전해지는 이야기입니다",
+  "credits": "Memorial photo: Andreas Keller, via Wikimedia Commons (copyrighted free use)",
+  "music": {
+    "heartbeat": [
+      4,
+      10
+    ],
+    "climax": 10
+  },
+  "whispers": [
+    "위에 있어",
+    "보고 있어",
+    "나가"
+  ],
+  "jumpscare": {
+    "img": "a pale gaunt man's face staring out of the darkness of a wooden attic, wide eyes, horror film jump scare",
+    "seed": 909,
+    "style": "cinema",
+    "delay": 2.4,
+    "dur": 0.75,
+    "steps": 4
+  },
+  "lines": [
+    {
+      "text": "1922년 3월. 독일의 한 외딴 농가.",
+      "hl": [
+        "외딴 농가"
+      ],
+      "film": true,
+      "style": "oldphoto",
+      "args": {
+        "grade": "old"
+      },
+      "img": "an isolated old Bavarian farmhouse with a barn in a snowy field at dusk, dark forest behind it",
+      "seed": 401
+    },
+    {
+      "text": "집주인은 이웃에게, 이상한 말을 했습니다.",
+      "hl": [
+        "이상한 말"
+      ],
+      "film": true,
+      "style": "oldphoto",
+      "args": {
+        "grade": "old"
+      },
+      "img": "silhouette of an old farmer holding a lantern in a snowy farmyard at night, face not visible",
+      "seed": 402
+    },
+    {
+      "text": "숲에서 집까지 이어진 발자국. 그런데, 나간 발자국은 없었다고.",
+      "hl": [
+        "나간 발자국은 없었다"
+      ],
+      "pause": 0.4,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "a single line of footprints in fresh snow leading from a dark forest toward an old farmhouse door, no footprints going back, night",
+      "seed": 403
+    },
+    {
+      "text": "밤이면 다락에서, 발소리가 들린다고.",
+      "hl": [
+        "다락",
+        "발소리"
+      ],
+      "steps": 5,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "a dark wooden farmhouse attic with hay and rafters, thin beams of light through cracks, dust in the air",
+      "seed": 404
+    },
+    {
+      "text": "본 적 없는 신문이 놓여 있었고, 집 열쇠는 사라졌다고.",
+      "hl": [
+        "열쇠"
+      ],
+      "film": true,
+      "style": "oldphoto",
+      "args": {
+        "grade": "old"
+      },
+      "img": "an old 1920s German newspaper lying on a rough wooden kitchen table next to a candle, empty key hook on the wall",
+      "seed": 405
+    },
+    {
+      "text": "하지만 아무도, 경찰에 신고하지 않았습니다.",
+      "hl": [
+        "아무도"
+      ],
+      "pause": 0.5,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "an old farmhouse at night in the snow with one dimly lit window, ominous, nobody outside",
+      "seed": 406
+    },
+    {
+      "text": "3월 31일 밤. 그 집에 있던 여섯 명이, 모두 살해됩니다.",
+      "hl": [
+        "여섯 명"
+      ],
+      "boom": true,
+      "film": true,
+      "photo": "assets/photos/hinterkaifeck_memorial.jpg",
+      "args": {
+        "grade": "old"
+      }
+    },
+    {
+      "text": "그런데 그 뒤로도, 누군가 그 집에서 지냈다고 합니다.",
+      "hl": [
+        "누군가"
+      ],
+      "riser": 2.4,
+      "sting": true,
+      "whisper": true,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "smoke rising from the chimney of a lonely snowy farmhouse at winter dusk, nobody around, eerie",
+      "seed": 408
+    },
+    {
+      "text": "가축은 먹이를 먹었고, 굴뚝에선 연기가 피어올랐습니다.",
+      "hl": [
+        "연기"
+      ],
+      "whisper": true,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "cows standing in a dark old wooden barn at night, a lantern hanging on a post, hay on the floor, nobody visible",
+      "seed": 419
+    },
+    {
+      "text": "시신이 발견된 건, 나흘 뒤였습니다.",
+      "hl": [
+        "나흘 뒤"
+      ],
+      "film": true,
+      "style": "oldphoto",
+      "args": {
+        "grade": "old"
+      },
+      "img": "the door of an old barn standing slightly open in the snow, overcast daylight, footprints of several people",
+      "seed": 410
+    },
+    {
+      "text": "그리고 흉기는... 다락에 숨겨져 있었습니다.",
+      "hl": [
+        "다락에 숨겨져"
+      ],
+      "shake": true,
+      "zoom": 0.2,
+      "flash": {
+        "at": 0.85,
+        "frames": 3
+      },
+      "args": {
+        "grade": "dark"
+      },
+      "img": "an old rusty mattock half hidden under hay in a pitch dark attic, a single beam of light",
+      "seed": 411
+    },
+    {
+      "text": "100년이 지난 지금도, 범인은 밝혀지지 않았습니다.",
+      "hl": [
+        "밝혀지지 않았습니다"
+      ],
+      "glitch": true,
+      "film": true,
+      "photo": "assets/photos/hinterkaifeck_memorial.jpg",
+      "args": {
+        "grade": [
+          "old",
+          "dark"
+        ]
+      }
+    },
+    {
+      "text": "오늘 밤... 당신 집 다락은, 조용한가요?",
+      "hl": [
+        "다락"
+      ],
+      "fx": "whisper",
+      "zoom": 0.14,
+      "args": {
+        "grade": "dark"
+      },
+      "img": "a ceiling attic hatch slightly open seen from below, pitch black darkness inside, old house at night",
+      "seed": 413
+    }
+  ]
+}
