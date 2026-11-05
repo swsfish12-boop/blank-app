@@ -307,7 +307,7 @@ def scene_image(scene, args, rnd):
         if "year" in args:
             d.text((540, 268), args["year"], font=font(96, serif=True), fill=(150, 32, 30), anchor="mm")
         return fabric(img.filter(ImageFilter.GaussianBlur(1.0)), 10)
-    if scene == "letter":
+    if scene in ("letter", "typed"):
         img = radial(540, 800, 1100, (40, 34, 30), (4, 4, 4))
         paper = Image.new("RGBA", (860, 1000), (222, 212, 186, 255))
         pd = ImageDraw.Draw(paper)
@@ -450,6 +450,19 @@ def scene_overlay(img, scene, args, lt, ldur, line_text):
         d.text((165, 320), "REC", font=font(44), fill=c, anchor="lm")
         secs = int(lt)
         d.text((970, 320), f"00:00:{secs:02d}", font=font(40), fill=c, anchor="rm")
+    elif scene == "typed":
+        rows = args.get("lines", [])
+        total = sum(len(b) for b in rows) or 1
+        n = int(min(1, lt / max(0.6, ldur * 0.75)) * total)
+        fm = ImageFont.truetype(FONT_SANS.replace("Bold", "Regular"), 54, index=6)   # Mono KR
+        y = 560
+        for b in rows:
+            k = min(len(b), max(0, n))
+            d.text((170, y), b[:k], font=fm, fill=(35, 28, 24))
+            if 0 < k < len(b) and int(lt * 4) % 2 == 0:
+                d.text((170 + d.textlength(b[:k], font=fm), y), "▌", font=fm, fill=(60, 50, 40))
+            n -= len(b)
+            y += 96
     elif scene == "letter":
         body = ["로버트에게,", "", "허락 없이 사진을 찍어서", "정말 미안해.", "", "제발 용서해 줘."]
         total = sum(len(b) for b in body)
@@ -657,6 +670,14 @@ def horror_bed(total, lines, story, js, rng):
             stinger(bed, starts[k] - 0.02, rng, amp=0.6)
         if ln.get("flash"):
             stinger(bed, ln["_flash_t"], rng, amp=0.55, bright=True)
+        if ln.get("scene") == "typed":
+            tt0 = starts[k]
+            while tt0 < ends[k]:
+                Lk = int(0.012 * SR)
+                click = rng.normal(0, 1, Lk) * np.exp(-np.arange(Lk) / SR * 600)
+                add_at(bed, tt0, bandpass(click, 900, 6000) * 0.5)
+                add_at(bed, tt0 + 0.004, np.sin(2 * np.pi * 180 * np.arange(Lk) / SR) * np.exp(-np.arange(Lk) / SR * 400) * 0.25)
+                tt0 += rng.uniform(0.07, 0.16)
         if ln.get("bell"):
             temple_bell(bed, starts[k] - 0.3)
         if ln.get("steps"):
